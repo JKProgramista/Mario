@@ -1,10 +1,8 @@
 class Fizyka {
 	aktualizacja(dane) {
-		if(dane.obiekty.mario.obecnyStan != dane.obiekty.mario.stan.miganie) {
+		if(dane.obiekty.mario.obecnyStan != dane.obiekty.mario.stan.miganie && dane.obiekty.mario.obecnyStan != dane.obiekty.mario.stan.wspinaczka) {
 			this.grawitacja(dane.obiekty.mario);
 		}
-
-		console.log(dane.obiekty.mario.obecnyStan);
 
 		dane.obiekty.tabelaPotworow.forEach((p) => {
 			this.grawitacja(p);
@@ -39,7 +37,7 @@ class Fizyka {
 	}
 
 	smierc(dane) {
-		if(dane.obiekty.mario.y > dane.obiekty.mapa.h) {
+		if(dane.obiekty.mario.y > 624) {
 			dane.obiekty.mario.momentSmierci = true;
 			dane.kontroler.smierc.strataZycia(dane);
 			dane.obiekty.mario.mozeStrzelac = false;
@@ -82,10 +80,12 @@ class Fizyka {
 			dane.obiekty.tabelaBloczkowGrzybow.forEach((bloczekGrzybow) => {
 				wykrywanieKolizji(mario, bloczekGrzybow);
 			});
+
+			wykrywanieKolizji(mario, dane.obiekty.maszt);
 		}
 
 		dane.obiekty.tabelaPotworow.forEach((potwor) => {
-			if(!mario.momentSmierci && mario.obecnyStan != mario.stan.miganie) wykrywanieKolizji(mario, potwor);
+			if(!mario.momentSmierci && mario.obecnyStan != mario.stan.miganie && !mario.zablokowany) wykrywanieKolizji(mario, potwor);
 
 			dane.obiekty.tabelaScian.forEach((sciana) => {
 				wykrywanieKolizji(potwor, sciana);
@@ -165,10 +165,16 @@ class Fizyka {
 		let stronaKolizji = this.stronaKolizji(obiekt1, obiekt2);
 		if(obiekt1.typ === "mario") {
 			let mario = obiekt1;
-			if(obiekt2.typ === "sciana" || obiekt2.typ === "bloczekMonet" || obiekt2.typ === "platforma" || obiekt2.typ === "bloczekCegiel" || obiekt2.typ === "bloczekGrzybow") {
+			if(obiekt2.typ === "sciana" || obiekt2.typ === "bloczekMonet" || obiekt2.typ === "platforma" || obiekt2.typ === "bloczekCegiel"  || obiekt2.typ === "bloczekGrzybow") {
 				if(stronaKolizji[0]) {
-					mario.obecnyStan = mario.stan.stanie;
-					mario.y = obiekt2.y - mario.h - .1;
+					if(mario.obecnyStan == mario.stan.wspinaczka) {
+						mario.obecnyStan = mario.stan.wspinaczka
+					} else if(mario.pedX == 0) {
+						mario.obecnyStan = mario.stan.stanie;
+					} else {
+						mario.obecnyStan = mario.stan.poruszanie;
+					}
+					mario.y = obiekt2.y - mario.h -.1;
 					mario.pedY = 0;
 					if(obiekt2.typ === "platforma") {
 						mario.pedX = obiekt2.pedX;
@@ -268,6 +274,29 @@ class Fizyka {
 						mario.mozeStrzelac = true;
 					}
 				}
+			} else if(obiekt2.typ === "maszt") {
+				obiekt2.flaga.obecnyStan = obiekt2.flaga.stan.zdjeta;
+				if(!mario.zablokowany) {
+					if(mario.x <= obiekt2.x) {
+						mario.x = obiekt2.x - mario.w/2;
+						mario.kierunek = "prawo";
+					} else {
+						mario.x = obiekt2.x + mario.w/2;
+						mario.kierunek = "lewo";
+					}
+					mario.obecnyStan = mario.stan.wspinaczka;
+					mario.pedY = 3;
+					mario.zablokowany = true;
+					setTimeout(() => {
+						mario.obecnyStan = mario.stan.poruszanie;
+						mario.kierunek = "prawo";
+						mario.pedX = 4;
+						setTimeout(() => {
+							dane.kontroler.zmianaPoziomu(obiekt2.nastepnyPoziom);
+							//dane.kontroler.obiekty = new Obiekty_LVL_2(dane);
+						}, 1000);
+					}, 2000);
+				}
 			}
 		} else if(obiekt1.typ === "potwor") {
 			let potwor = obiekt1;
@@ -320,10 +349,9 @@ class Fizyka {
 					pocisk.obecnyStan = pocisk.stan.wybuch;
 				}
 			} else if(obiekt2.typ === "potwor") {
-				obiekt2.pedX = 0;
+				pocisk.obecnyStan = pocisk.stan.wybuch;
 				let nrPotwora = dane.obiekty.tabelaPotworow.indexOf(obiekt2);
 				dane.obiekty.tabelaPotworow.splice(nrPotwora, 1);
-				pocisk.obecnyStan = pocisk.stan.wybuch;
 			}
 		}
 	}

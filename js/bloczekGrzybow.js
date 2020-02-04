@@ -1,9 +1,9 @@
 class BloczekGrzybow {
-	constructor(img,x,y,w,h,r) {
-		this.obraz = new Obraz(img, 3408, 128, 16, 16);
+	constructor(img, x,y,w,h, r) {
+		this.obraz = new Obraz(img, 0, 128, 16, 16);
 		this.animacja = {
-			pelny: new Obraz(img, 3408, 128, 16, 16),
-			pusty: new Obraz(img, 3424, 128, 16, 16)
+			pelny: new Obraz(img, 0, 128, 16, 16),
+			pusty: new Obraz(img, 16, 128, 16, 16)
 		};
 		this.stan = {
 			drganie: {
@@ -14,14 +14,14 @@ class BloczekGrzybow {
 						this.y -= 2;
 					} else if(this.obecnyStan.licznik<10){
 						this.y += 2;
-					} else {
+					} else{
 						this.obecnyStan.licznik = 0;
 						this.obecnyStan = this.stan.spoczynek;
 					}
 					return;
 				},
 				animacja: (dane) => {
-          if(this.pelny) {
+					if(this.pelny) {
 						this.obraz = this.animacja.pelny;
 					} else {
 						this.obraz = this.animacja.pusty;
