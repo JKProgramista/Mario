@@ -37,7 +37,7 @@ var Silnik = {
 			
 			dane.nrKlatki++;
 			
-			window.requestAnimationFrame(pe`tla);
+			window.requestAnimationFrame(petla);
 		};
 		
 		petla();
